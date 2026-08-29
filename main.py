@@ -3,6 +3,8 @@ from student_manager import StudentManager
 from console_app import run_console_app
 from gui_app import run_gui_app
 
+print("nscjkc")
+
 def main():
     manager = StudentManager()
 
