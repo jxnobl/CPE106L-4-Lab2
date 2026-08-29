@@ -12,33 +12,47 @@ class StudentManager:
 
     def save_to_json(self):
         serialized_data = {
-            f"{sid[0]}-{sid[1]}": record for sid, record in self.students.items()
+            f"{sid[0]}-{sid[1]}": record
+            for sid, record in self.students.items()
         }
+
         with open(self.data_file, "w") as f:
             json.dump(serialized_data, f, indent=4)
 
     def load_from_json(self):
         if not os.path.exists(self.data_file):
             return
+
         try:
             with open(self.data_file, "r") as f:
                 raw_data = json.load(f)
+
             self.students = {}
             max_seq = self.current_seq
+
             for str_id, record in raw_data.items():
                 year_str, seq_str = str_id.split("-")
                 sid_tuple = (int(year_str), int(seq_str))
+
                 record["Student ID"] = sid_tuple
+
+                if "Status" not in record:
+                    record["Status"] = "Active"
+
                 self.students[sid_tuple] = record
+
                 if int(seq_str) > max_seq:
                     max_seq = int(seq_str)
+
             self.current_seq = max_seq
+
         except (json.JSONDecodeError, ValueError):
             self.students = {}
 
     def clear_database(self):
         self.students = {}
         self.current_seq = 1000
+
         if os.path.exists(self.data_file):
             os.remove(self.data_file)
 
@@ -47,27 +61,41 @@ class StudentManager:
         self.current_seq += 1
         return (current_year, self.current_seq)
 
-    def check_duplicate_name(self, name):
+    def check_duplicate_name(self, name, exclude_id=None):
         normalized = name.strip().casefold()
-        for record in self.students.values():
+
+        for sid, record in self.students.items():
+
+            if exclude_id is not None and sid == exclude_id:
+                continue
+
             if record["Name"].casefold() == normalized:
                 return True
+
         return False
 
     def add_student(self, name, program, courses_list):
+
         clean_name = name.strip().title()
         clean_prog = program.strip().upper()
 
         if not clean_name or not clean_prog:
-            raise ValueError("Student Name and Program cannot be empty.")
+            raise ValueError(
+                "Student Name and Program cannot be empty."
+            )
 
         if self.check_duplicate_name(clean_name):
-            raise ValueError(f"Student '{clean_name}' is already registered in the system.")
+            raise ValueError(
+                f"Student '{clean_name}' is already registered in the system."
+            )
 
         student_id = self.generate_student_id()
+
         cleaned_courses = []
+
         for c in courses_list:
             item = c.strip().upper()
+
             if item and item not in cleaned_courses:
                 cleaned_courses.append(item)
 
@@ -75,60 +103,216 @@ class StudentManager:
             "Name": clean_name,
             "Course": clean_prog,
             "Student ID": student_id,
-            "Subjects": cleaned_courses
+            "Subjects": cleaned_courses,
+            "Status": "Active"
         }
 
         self.students[student_id] = record
         self.save_to_json()
+
         return record
 
     def find_record(self, identifier):
-        query = identifier.strip().casefold()
+
+        if isinstance(identifier, tuple):
+            record = self.students.get(identifier)
+
+            if record:
+                return identifier, record
+
+            return None, None
+
+        query = str(identifier).strip().casefold()
+
         for sid, record in self.students.items():
+
             formatted_id = self.format_id(sid).casefold()
-            if query == formatted_id or query == record["Name"].casefold():
+
+            if (
+                query == formatted_id
+                or query == record["Name"].casefold()
+            ):
                 return sid, record
+
         return None, None
 
-    def add_courses_to_student(self, identifier, courses_to_add):
-        sid, record = self.find_record(identifier)
+    def update_student(
+        self,
+        student_id,
+        name,
+        program,
+        courses_list
+    ):
+
+        sid, record = self.find_record(student_id)
+
         if not record:
-            raise ValueError(f"No student record found matching: '{identifier}'.")
+            raise ValueError(
+                f"No student record found matching: '{student_id}'."
+            )
+
+        clean_name = name.strip().title()
+        clean_program = program.strip().upper()
+
+        if not clean_name or not clean_program:
+            raise ValueError(
+                "Student Name and Program cannot be empty."
+            )
+
+        if self.check_duplicate_name(
+            clean_name,
+            exclude_id=sid
+        ):
+            raise ValueError(
+                f"Student '{clean_name}' is already registered in the system."
+            )
+
+        cleaned_courses = []
+
+        for course in courses_list:
+            item = course.strip().upper()
+
+            if item and item not in cleaned_courses:
+                cleaned_courses.append(item)
+
+        record["Name"] = clean_name
+        record["Course"] = clean_program
+        record["Subjects"] = cleaned_courses
+
+        self.save_to_json()
+
+        return record
+
+    def add_courses_to_student(
+        self,
+        identifier,
+        courses_to_add
+    ):
+
+        sid, record = self.find_record(identifier)
+
+        if not record:
+            raise ValueError(
+                f"No student record found matching: '{identifier}'."
+            )
 
         added_count = 0
+
         for c in courses_to_add:
+
             course = c.strip().upper()
-            if course and course not in record["Subjects"]:
+
+            if (
+                course
+                and course not in record["Subjects"]
+            ):
                 record["Subjects"].append(course)
                 added_count += 1
 
         self.save_to_json()
+
         return record, added_count
 
-    def remove_courses_from_student(self, identifier, courses_to_remove):
+    def remove_courses_from_student(
+        self,
+        identifier,
+        courses_to_remove
+    ):
+
         sid, record = self.find_record(identifier)
+
         if not record:
-            raise ValueError(f"No student record found matching: '{identifier}'.")
+            raise ValueError(
+                f"No student record found matching: '{identifier}'."
+            )
 
         removed_count = 0
+
         for c in courses_to_remove:
+
             course = c.strip().upper()
+
             if course in record["Subjects"]:
                 record["Subjects"].remove(course)
                 removed_count += 1
 
         self.save_to_json()
+
         return record, removed_count
+
+    def drop_student(self, identifier):
+
+        sid, record = self.find_record(identifier)
+
+        if not record:
+            raise ValueError(
+                f"No student record found matching: '{identifier}'."
+            )
+
+        if record.get("Status", "Active") == "Dropped":
+            raise ValueError(
+                "Student is already marked as dropped."
+            )
+
+        record["Status"] = "Dropped"
+
+        self.save_to_json()
+
+        return record
+
+    def restore_student(self, identifier):
+
+        sid, record = self.find_record(identifier)
+
+        if not record:
+            raise ValueError(
+                f"No student record found matching: '{identifier}'."
+            )
+
+        if record.get("Status", "Active") == "Active":
+            raise ValueError(
+                "Student is already marked as active."
+            )
+
+        record["Status"] = "Active"
+
+        self.save_to_json()
+
+        return record
+
+    def delete_student(self, identifier):
+
+        sid, record = self.find_record(identifier)
+
+        if not record:
+            raise ValueError(
+                f"No student record found matching: '{identifier}'."
+            )
+
+        # Permanently remove the record
+        del self.students[sid]
+
+        # Save the updated database
+        self.save_to_json()
+
+        return record
 
     def get_all_students(self):
         return self.students
 
     def search_student(self, query):
+
         q = query.strip().casefold()
         results = []
+
         for sid, record in self.students.items():
+
             formatted_id = self.format_id(sid).casefold()
-            if q == formatted_id or q in record["Name"].casefold():
+
+            if (
+                q == formatted_id
+                or q in record["Name"].casefold()
+            ):
                 results.append(record)
 
         return results
