@@ -28,8 +28,6 @@ class StudentManager:
                 year_str, seq_str = str_id.split("-")
                 sid_tuple = (int(year_str), int(seq_str))
                 record["Student ID"] = sid_tuple
-                if "Status" not in record:
-                    record["Status"] = "Active"
                 self.students[sid_tuple] = record
                 if int(seq_str) > max_seq:
                     max_seq = int(seq_str)
@@ -76,8 +74,7 @@ class StudentManager:
             "Name": clean_name,
             "Course": clean_prog,
             "Student ID": student_id,
-            "Subjects": cleaned_courses,
-            "Status": "Active"
+            "Subjects": cleaned_courses
         }
 
         self.students[student_id] = record
@@ -92,29 +89,10 @@ class StudentManager:
                 return sid, record
         return None, None
 
-    def drop_student(self, identifier):
-        sid, record = self.find_record(identifier)
-        if not record:
-            raise ValueError(f"No student record found matching: '{identifier}'.")
-        record["Status"] = "Dropped"
-        self.save_to_json()
-        return record
-
-    def delete_student_permanently(self, identifier):
-        sid, record = self.find_record(identifier)
-        if not record:
-            raise ValueError(f"No student record found matching: '{identifier}'.")
-        deleted_record = self.students.pop(sid)
-        self.save_to_json()
-        return deleted_record
-
     def add_courses_to_student(self, identifier, courses_to_add):
         sid, record = self.find_record(identifier)
         if not record:
             raise ValueError(f"No student record found matching: '{identifier}'.")
-
-        if record.get("Status") == "Dropped":
-            raise ValueError(f"Cannot modify courses. Student '{record['Name']}' is dropped/inactive.")
 
         added_count = 0
         for c in courses_to_add:
@@ -130,9 +108,6 @@ class StudentManager:
         sid, record = self.find_record(identifier)
         if not record:
             raise ValueError(f"No student record found matching: '{identifier}'.")
-
-        if record.get("Status") == "Dropped":
-            raise ValueError(f"Cannot modify courses. Student '{record['Name']}' is dropped/inactive.")
 
         removed_count = 0
         for c in courses_to_remove:
