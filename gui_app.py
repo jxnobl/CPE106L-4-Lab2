@@ -1,81 +1,147 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
+from student_manager import StudentManager
 
-students_database = []
-student_counter = 1000
 
-def add_student_gui():
-    global student_counter
+manager = StudentManager()
+
+
+def register_student_gui():
     name = entry_name.get().strip()
-    course = entry_course.get().strip()
-    subjects_raw = entry_subjects.get().strip()
-    
-    if not name or not course:
-        messagebox.showwarning("Input Error", "Please fill in both Name and Course fields.")
+    program = entry_program.get().strip()
+    raw_courses = entry_courses.get().strip()
+    courses = [c.strip() for c in raw_courses.split(",") if c.strip()]
+
+    if not name or not program:
+        messagebox.showwarning(
+            "Input Error",
+            "Please fill in both Name and Program fields."
+        )
         return
-    
-    student_counter += 1
-    student_id = (2026, student_counter)
-    subjects = [s.strip() for s in subjects_raw.split(",") if s.strip()]
-    
-    student_record = {
-        "Name": name,
-        "Course": course,
-        "Student ID": student_id,
-        "Subjects": subjects
-    }
-    
-    students_database.append(student_record)
-    
-    formatted_id = f"{student_id[0]}-{student_id[1]}"
-    subjects_display = ", ".join(subjects) if subjects else "None"
-    
-    tree.insert("", tk.END, values=(formatted_id, name, course, subjects_display))
-    
-    entry_name.delete(0, tk.END)
-    entry_course.delete(0, tk.END)
-    entry_subjects.delete(0, tk.END)
-    
-    messagebox.showinfo("Success", f"Student added with ID: {formatted_id}")
+
+    try:
+        record = manager.add_student(name, program, courses)
+        formatted_id = manager.format_id(record["Student ID"])
+
+        tree.insert(
+            "",
+            tk.END,
+            values=(
+                formatted_id,
+                name,
+                program,
+                ", ".join(courses) if courses else "None"
+            )
+        )
+
+        entry_name.delete(0, tk.END)
+        entry_program.delete(0, tk.END)
+        entry_courses.delete(0, tk.END)
+
+        messagebox.showinfo(
+            "Success",
+            f"Record initialized.\nAssigned ID: {formatted_id}"
+        )
+
+    except ValueError as err:
+        messagebox.showerror("Error", str(err))
+
 
 root = tk.Tk()
-root.title("Student Information Management System")
-root.geometry("650x450")
+root.title("University Academic Records System")
+root.geometry("700x450")
 
-frame_form = tk.LabelFrame(root, text="Student Details", padx=10, pady=10)
+
+# -----------------------------
+# Student Registration
+# -----------------------------
+
+frame_form = tk.LabelFrame(
+    root,
+    text="Student Registration",
+    padx=10,
+    pady=10
+)
 frame_form.pack(fill="x", padx=15, pady=10)
 
-tk.Label(frame_form, text="Student Name:").grid(row=0, column=0, sticky="w", pady=2)
+
+tk.Label(
+    frame_form,
+    text="Name:"
+).grid(row=0, column=0, sticky="w", pady=2)
+
 entry_name = tk.Entry(frame_form, width=40)
 entry_name.grid(row=0, column=1, pady=2)
 
-tk.Label(frame_form, text="Course:").grid(row=1, column=0, sticky="w", pady=2)
-entry_course = tk.Entry(frame_form, width=40)
-entry_course.grid(row=1, column=1, pady=2)
 
-tk.Label(frame_form, text="Subjects (comma-separated):").grid(row=2, column=0, sticky="w", pady=2)
-entry_subjects = tk.Entry(frame_form, width=40)
-entry_subjects.grid(row=2, column=1, pady=2)
+tk.Label(
+    frame_form,
+    text="Program:"
+).grid(row=1, column=0, sticky="w", pady=2)
 
-btn_add = tk.Button(frame_form, text="Add Student", command=add_student_gui, width=15)
-btn_add.grid(row=3, column=1, sticky="e", pady=5)
+entry_program = tk.Entry(frame_form, width=40)
+entry_program.grid(row=1, column=1, pady=2)
 
-frame_table = tk.Frame(root, padx=10, pady=5)
-frame_table.pack(fill="both", expand=True, padx=15, pady=5)
 
-columns = ("ID", "Name", "Course", "Subjects")
-tree = ttk.Treeview(frame_table, columns=columns, show="headings", height=8)
+tk.Label(
+    frame_form,
+    text="Courses (comma-separated):"
+).grid(row=2, column=0, sticky="w", pady=2)
 
-tree.heading("ID", text="Student ID")
+entry_courses = tk.Entry(frame_form, width=40)
+entry_courses.grid(row=2, column=1, pady=2)
+
+
+btn_register = tk.Button(
+    frame_form,
+    text="Register Student",
+    command=register_student_gui,
+    width=15
+)
+btn_register.grid(row=3, column=1, sticky="e", pady=5)
+
+
+# -----------------------------
+# Active Student Directory
+# -----------------------------
+
+frame_table = tk.LabelFrame(
+    root,
+    text="Active Student Directory",
+    padx=10,
+    pady=5
+)
+frame_table.pack(
+    fill="both",
+    expand=True,
+    padx=15,
+    pady=5
+)
+
+
+columns = ("ID", "Name", "Program", "Courses")
+
+tree = ttk.Treeview(
+    frame_table,
+    columns=columns,
+    show="headings",
+    height=10
+)
+
+
+tree.heading("ID", text="ID Code")
 tree.heading("Name", text="Name")
-tree.heading("Course", text="Course")
-tree.heading("Subjects", text="Subjects")
+tree.heading("Program", text="Program")
+tree.heading("Courses", text="Courses")
 
-tree.column("ID", width=90, anchor="center")
-tree.column("Name", width=140)
-tree.column("Course", width=140)
-tree.column("Subjects", width=220)
+
+tree.column("ID", width=100, anchor="center")
+tree.column("Name", width=150)
+tree.column("Program", width=150)
+tree.column("Courses", width=240)
+
 
 tree.pack(fill="both", expand=True)
+
 
 root.mainloop()
