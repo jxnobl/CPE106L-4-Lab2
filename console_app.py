@@ -30,18 +30,35 @@ def run_console_app(manager: StudentManager):
             print(f"\n[ERROR] No record found matching: '{identifier}'.")
             return
             
-        print(f"\nStudent Found : {record['Name']} ({manager.format_id(record['Student ID'])})")
-        print(f"Current Enrolled: {', '.join(record['Subjects']) if record['Subjects'] else 'None'}")
+        print(f"\nStudent Found   : {record['Name']} ({manager.format_id(record['Student ID'])})")
+        print(f"Current Courses : {', '.join(record['Subjects']) if record['Subjects'] else 'None'}")
         
-        raw_courses = input("\nEnter Updated Courses (comma-separated): ")
-        new_courses = [c.strip() for c in raw_courses.split(",") if c.strip()]
+        print("\nChoose Action:")
+        print("1. Add Course(s)")
+        print("2. Drop / Delete Course(s)")
+        action = input("Select (1-2): ").strip()
         
-        try:
-            updated = manager.update_student_courses(identifier, new_courses)
-            print(f"\n[SUCCESS] Courses successfully updated for {updated['Name']}.")
-            print(f"Updated Enrolled: {', '.join(updated['Subjects']) if updated['Subjects'] else 'None'}")
-        except ValueError as err:
-            print(f"\n[ERROR] {err}")
+        if action == "1":
+            raw_input = input("Enter Courses to Add (comma-separated): ")
+            target_list = [c.strip() for c in raw_input.split(",") if c.strip()]
+            try:
+                updated, count = manager.add_courses_to_student(identifier, target_list)
+                print(f"\n[SUCCESS] Added {count} new course(s).")
+                print(f"Updated Enrolled: {', '.join(updated['Subjects']) if updated['Subjects'] else 'None'}")
+            except ValueError as err:
+                print(f"\n[ERROR] {err}")
+                
+        elif action == "2":
+            raw_input = input("Enter Courses to Drop (comma-separated): ")
+            target_list = [c.strip() for c in raw_input.split(",") if c.strip()]
+            try:
+                updated, count = manager.remove_courses_from_student(identifier, target_list)
+                print(f"\n[SUCCESS] Dropped {count} course(s).")
+                print(f"Updated Enrolled: {', '.join(updated['Subjects']) if updated['Subjects'] else 'None'}")
+            except ValueError as err:
+                print(f"\n[ERROR] {err}")
+        else:
+            print("[INVALID] Operation cancelled.")
 
     def display_ui():
         print("\n" + "=" * 40)
@@ -84,7 +101,6 @@ def run_console_app(manager: StudentManager):
             print(f"Name      : {data['Name']}")
             print(f"Program   : {data['Course']}")
             print(f"Courses   : {courses_str}")
-<<<<<<< HEAD
 
     def clear_ui():
         print("\n" + "=" * 40)
@@ -96,15 +112,13 @@ def run_console_app(manager: StudentManager):
             print("\n[SUCCESS] Database cleared and JSON file reset.")
         else:
             print("\n[CANCELLED] Database reset aborted.")
-=======
->>>>>>> 42c39107a86d2a516b0a40215e9d68923d6e3420
 
     while True:
         print("\n" + "#" * 40)
         print("   UNIVERSITY ACADEMIC RECORDS SYSTEM")
         print("#" * 40)
         print("1. Register New Student")
-        print("2. Manage/Edit Enrolled Courses")
+        print("2. Manage Enrolled Courses (Add/Drop)")
         print("3. Display All Student Records")
         print("4. Query Student Directory")
         print("5. Reset / Clear Database")

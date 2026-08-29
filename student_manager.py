@@ -64,7 +64,11 @@ class StudentManager:
             raise ValueError(f"Student '{clean_name}' is already registered in the system.")
 
         student_id = self.generate_student_id()
-        cleaned_courses = [c.strip().upper() for c in courses_list if c.strip()]
+        cleaned_courses = []
+        for c in courses_list:
+            item = c.strip().upper()
+            if item and item not in cleaned_courses:
+                cleaned_courses.append(item)
 
         record = {
             "Name": clean_name,
@@ -85,15 +89,35 @@ class StudentManager:
                 return sid, record
         return None, None
 
-    def update_student_courses(self, identifier, new_courses_list):
+    def add_courses_to_student(self, identifier, courses_to_add):
         sid, record = self.find_record(identifier)
         if not record:
-            raise ValueError(f"No student record found matching identifier: '{identifier}'.")
+            raise ValueError(f"No student record found matching: '{identifier}'.")
 
-        cleaned_courses = [c.strip().upper() for c in new_courses_list if c.strip()]
-        record["Subjects"] = cleaned_courses
+        added_count = 0
+        for c in courses_to_add:
+            course = c.strip().upper()
+            if course and course not in record["Subjects"]:
+                record["Subjects"].append(course)
+                added_count += 1
+
         self.save_to_json()
-        return record
+        return record, added_count
+
+    def remove_courses_from_student(self, identifier, courses_to_remove):
+        sid, record = self.find_record(identifier)
+        if not record:
+            raise ValueError(f"No student record found matching: '{identifier}'.")
+
+        removed_count = 0
+        for c in courses_to_remove:
+            course = c.strip().upper()
+            if course in record["Subjects"]:
+                record["Subjects"].remove(course)
+                removed_count += 1
+
+        self.save_to_json()
+        return record, removed_count
 
     def get_all_students(self):
         return self.students
