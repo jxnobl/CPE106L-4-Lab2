@@ -3,12 +3,6 @@ from student_manager import StudentManager
 from console_app import run_console_app
 from gui_app import run_gui_app
 
-print("Hello World!")
-
-print("HI PRE")
-
-print("sample")
-
 def main():
     manager = StudentManager()
 
