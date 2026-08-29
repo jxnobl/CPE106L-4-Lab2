@@ -65,7 +65,6 @@ class StudentManager:
         normalized = name.strip().casefold()
 
         for sid, record in self.students.items():
-
             if exclude_id is not None and sid == exclude_id:
                 continue
 
@@ -75,7 +74,6 @@ class StudentManager:
         return False
 
     def add_student(self, name, program, courses_list):
-
         clean_name = name.strip().title()
         clean_prog = program.strip().upper()
 
@@ -112,43 +110,12 @@ class StudentManager:
 
         return record
 
-    def find_record(self, identifier):
-
-        if isinstance(identifier, tuple):
-            record = self.students.get(identifier)
-
-            if record:
-                return identifier, record
-
-            return None, None
-
-        query = str(identifier).strip().casefold()
-
-        for sid, record in self.students.items():
-
-            formatted_id = self.format_id(sid).casefold()
-
-            if (
-                query == formatted_id
-                or query == record["Name"].casefold()
-            ):
-                return sid, record
-
-        return None, None
-
-    def update_student(
-        self,
-        student_id,
-        name,
-        program,
-        courses_list
-    ):
-
-        sid, record = self.find_record(student_id)
+    def update_student(self, identifier, name, program, courses_list):
+        sid, record = self.find_record(identifier)
 
         if not record:
             raise ValueError(
-                f"No student record found matching: '{student_id}'."
+                f"No student record found matching: '{identifier}'."
             )
 
         clean_name = name.strip().title()
@@ -159,21 +126,18 @@ class StudentManager:
                 "Student Name and Program cannot be empty."
             )
 
-        if self.check_duplicate_name(
-            clean_name,
-            exclude_id=sid
-        ):
+        if self.check_duplicate_name(clean_name, exclude_id=sid):
             raise ValueError(
                 f"Student '{clean_name}' is already registered in the system."
             )
 
         cleaned_courses = []
 
-        for course in courses_list:
-            item = course.strip().upper()
+        for c in courses_list:
+            course = c.strip().upper()
 
-            if item and item not in cleaned_courses:
-                cleaned_courses.append(item)
+            if course and course not in cleaned_courses:
+                cleaned_courses.append(course)
 
         record["Name"] = clean_name
         record["Course"] = clean_program
@@ -183,12 +147,21 @@ class StudentManager:
 
         return record
 
-    def add_courses_to_student(
-        self,
-        identifier,
-        courses_to_add
-    ):
+    def find_record(self, identifier):
+        query = identifier.strip().casefold()
 
+        for sid, record in self.students.items():
+            formatted_id = self.format_id(sid).casefold()
+
+            if (
+                query == formatted_id
+                or query == record["Name"].casefold()
+            ):
+                return sid, record
+
+        return None, None
+
+    def add_courses_to_student(self, identifier, courses_to_add):
         sid, record = self.find_record(identifier)
 
         if not record:
@@ -196,16 +169,17 @@ class StudentManager:
                 f"No student record found matching: '{identifier}'."
             )
 
+        if record.get("Status", "Active") == "Dropped":
+            raise ValueError(
+                "Cannot add courses to a student who has dropped from the university."
+            )
+
         added_count = 0
 
         for c in courses_to_add:
-
             course = c.strip().upper()
 
-            if (
-                course
-                and course not in record["Subjects"]
-            ):
+            if course and course not in record["Subjects"]:
                 record["Subjects"].append(course)
                 added_count += 1
 
@@ -213,12 +187,7 @@ class StudentManager:
 
         return record, added_count
 
-    def remove_courses_from_student(
-        self,
-        identifier,
-        courses_to_remove
-    ):
-
+    def remove_courses_from_student(self, identifier, courses_to_remove):
         sid, record = self.find_record(identifier)
 
         if not record:
@@ -229,7 +198,6 @@ class StudentManager:
         removed_count = 0
 
         for c in courses_to_remove:
-
             course = c.strip().upper()
 
             if course in record["Subjects"]:
@@ -241,7 +209,6 @@ class StudentManager:
         return record, removed_count
 
     def drop_student(self, identifier):
-
         sid, record = self.find_record(identifier)
 
         if not record:
@@ -261,7 +228,6 @@ class StudentManager:
         return record
 
     def restore_student(self, identifier):
-
         sid, record = self.find_record(identifier)
 
         if not record:
@@ -281,7 +247,6 @@ class StudentManager:
         return record
 
     def delete_student(self, identifier):
-
         sid, record = self.find_record(identifier)
 
         if not record:
@@ -289,10 +254,8 @@ class StudentManager:
                 f"No student record found matching: '{identifier}'."
             )
 
-        # Permanently remove the record
         del self.students[sid]
 
-        # Save the updated database
         self.save_to_json()
 
         return record
@@ -301,12 +264,11 @@ class StudentManager:
         return self.students
 
     def search_student(self, query):
-
         q = query.strip().casefold()
+
         results = []
 
         for sid, record in self.students.items():
-
             formatted_id = self.format_id(sid).casefold()
 
             if (
