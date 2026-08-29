@@ -7,6 +7,8 @@ print("Hello World!")
 
 print("HI PRE")
 
+print("sample")
+
 def main():
     manager = StudentManager()
 
