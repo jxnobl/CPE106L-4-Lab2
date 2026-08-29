@@ -34,5 +34,22 @@
             "CPE117-4"
         ],
         "Status": "Active"
+    },
+    "2026-1003": {
+        "Name": "Justin De Leon",
+        "Course": "BS COMPUTER ENGINEERING",
+        "Student ID": [
+            2026,
+            1003
+        ],
+        "Subjects": [
+            "CPE106L-4",
+            "ECEA101-1",
+            "CPE117-4",
+            "CPE106-4",
+            "CPE105-4",
+            "ECEA101-1L"
+        ],
+        "Status": "Dropped"
     }
 }
