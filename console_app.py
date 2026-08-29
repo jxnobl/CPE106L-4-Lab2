@@ -84,6 +84,7 @@ def run_console_app(manager: StudentManager):
             print(f"Name      : {data['Name']}")
             print(f"Program   : {data['Course']}")
             print(f"Courses   : {courses_str}")
+<<<<<<< HEAD
 
     def clear_ui():
         print("\n" + "=" * 40)
@@ -95,6 +96,8 @@ def run_console_app(manager: StudentManager):
             print("\n[SUCCESS] Database cleared and JSON file reset.")
         else:
             print("\n[CANCELLED] Database reset aborted.")
+=======
+>>>>>>> 42c39107a86d2a516b0a40215e9d68923d6e3420
 
     while True:
         print("\n" + "#" * 40)
