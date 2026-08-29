@@ -1,0 +1,38 @@
+{
+    "2026-1001": {
+        "Name": "Edmarc Justin C. Oabel",
+        "Course": "BS COMPUTER ENGINEERING",
+        "Student ID": [
+            2026,
+            1001
+        ],
+        "Subjects": [
+            "CPE106L-4",
+            "ECEA101-1",
+            "CPE117-4",
+            "CPE106-4",
+            "CPE105-4",
+            "ECEA101-1L",
+            "IE103-1"
+        ],
+        "Status": "Active"
+    },
+    "2026-1002": {
+        "Name": "Jabez C. Molar",
+        "Course": "BS COMPUTER ENGINEERING",
+        "Student ID": [
+            2026,
+            1002
+        ],
+        "Subjects": [
+            "CPE106L-4",
+            "ECEA101-1",
+            "ECEA101-1L",
+            "CPE106-4",
+            "CPE105-4",
+            "CPE121-4",
+            "CPE117-4"
+        ],
+        "Status": "Active"
+    }
+}
