@@ -2,6 +2,7 @@ import json
 import os
 import datetime
 
+
 class StudentManager:
     def __init__(self, data_file="students_data.json", start_seq=1000):
         self.data_file = data_file
@@ -129,6 +130,7 @@ class StudentManager:
             formatted_id = self.format_id(sid).casefold()
             if q == formatted_id or q in record["Name"].casefold():
                 results.append(record)
+
         return results
 
     @staticmethod
