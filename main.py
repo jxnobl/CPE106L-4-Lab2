@@ -5,6 +5,8 @@ from gui_app import run_gui_app
 
 print("Hello World!")
 
+print("HI PRE")
+
 def main():
     manager = StudentManager()
 
