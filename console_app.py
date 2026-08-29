@@ -6,13 +6,13 @@ def run_console_app(manager: StudentManager):
         print("      STUDENT REGISTRATION MODULE")
         print("=" * 40)
         
-        name = input("Enter Full Name: ").strip()
-        course = input("Enter Degree Program: ").strip()
-        raw_subs = input("Enter Subjects (comma-separated): ")
-        subjects = [s.strip() for s in raw_subs.split(",") if s.strip()]
+        name = input("Enter Name: ").strip()
+        program = input("Enter Program: ").strip()
+        raw_courses = input("Enter Courses (comma-separated): ")
+        courses = [c.strip() for c in raw_courses.split(",") if c.strip()]
         
         try:
-            record = manager.add_student(name, course, subjects)
+            record = manager.add_student(name, program, courses)
             formatted_id = manager.format_id(record["Student ID"])
             print(f"\n[SUCCESS] Record initialized. Assigned ID: {formatted_id}")
         except ValueError as err:
@@ -30,13 +30,13 @@ def run_console_app(manager: StudentManager):
             
         for sid, data in records.items():
             formatted_id = manager.format_id(sid)
-            sub_count = len(data["Subjects"])
-            sub_str = ", ".join(data["Subjects"]) if sub_count > 0 else "None"
+            courses_count = len(data["Subjects"])
+            courses_str = ", ".join(data["Subjects"]) if courses_count > 0 else "None"
             
             print(f"\nID Code   : {formatted_id}")
             print(f"Name      : {data['Name']}")
             print(f"Program   : {data['Course']}")
-            print(f"Enrolled  : {sub_count} Subject(s) -> {sub_str}")
+            print(f"Courses   : {courses_count} Enrolled -> {courses_str}")
             print("-" * 40)
 
     def search_ui():
@@ -44,7 +44,7 @@ def run_console_app(manager: StudentManager):
         print("           SEARCH DIRECTORY")
         print("=" * 40)
         
-        query = input("Enter Student ID or Full Name: ").strip()
+        query = input("Enter Student ID or Name: ").strip()
         matches = manager.search_student(query)
         
         if not matches:
@@ -53,11 +53,12 @@ def run_console_app(manager: StudentManager):
             
         for data in matches:
             formatted_id = manager.format_id(data["Student ID"])
+            courses_str = ", ".join(data["Subjects"]) if data["Subjects"] else "None"
             print("\n[MATCH FOUND]")
             print(f"ID Code   : {formatted_id}")
             print(f"Name      : {data['Name']}")
             print(f"Program   : {data['Course']}")
-            print(f"Subjects  : {', '.join(data['Subjects']) if data['Subjects'] else 'None'}")
+            print(f"Courses   : {courses_str}")
 
     while True:
         print("\n" + "#" * 40)
